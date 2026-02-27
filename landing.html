@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>adlib — the agent-first CMS</title>
+  <meta name="description" content="One HTML attribute. Full content round-trip. Zero everything else. The agent-first CMS for static sites.">
+  <style>
+    /* ── Fonts ── */
+    @font-face {
+      font-family: 'Stack Sans Notch';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('https://cdn.jsdelivr.net/fontsource/fonts/stack-sans-notch@latest/latin-300-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Stack Sans Notch';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('https://cdn.jsdelivr.net/fontsource/fonts/stack-sans-notch@latest/latin-600-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Stack Sans Notch';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('https://cdn.jsdelivr.net/fontsource/fonts/stack-sans-notch@latest/latin-700-normal.woff2') format('woff2');
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Custom Properties ── */
+    :root {
+      --accent: #d4ff00;
+      --font: 'Stack Sans Notch', system-ui, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace;
+      --muted: rgba(255, 255, 255, 0.45);
+      --muted-light: rgba(255, 255, 255, 0.6);
+      --border: rgba(255, 255, 255, 0.1);
+      --section-px: clamp(1.5rem, 5vw, 4rem);
+      --section-py: clamp(6rem, 16vh, 14rem);
+      --max-w: 1200px;
+    }
+
+    /* ── Global ── */
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      font-family: var(--font);
+      font-weight: 300;
+      background: #000;
+      color: #fff;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Skip Link ── */
+    .skip-link {
+      position: fixed;
+      top: -100%;
+      left: 1rem;
+      z-index: 1000;
+      background: var(--accent);
+      color: #000;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0 0 8px 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      transition: top 0.2s;
+    }
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* ── Focus Styles ── */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    /* ── WebGL Canvas ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Content Layer ── */
+    .content-layer {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Reveal Animation ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem var(--section-px);
+      background: transparent;
+      border-bottom: 1px solid transparent;
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      transition: background 0.4s, border-color 0.4s, backdrop-filter 0.4s, -webkit-backdrop-filter 0.4s;
+    }
+    .nav.scrolled {
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom-color: var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .wordmark {
+      font-weight: 700;
+      font-size: clamp(1.25rem, 2vw, 1.5rem);
+      text-decoration: none;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .wordmark-accent {
+      color: var(--accent);
+    }
+    .nav-pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 0.5em 1.5em;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      letter-spacing: 0.01em;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .nav-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ── Section Base ── */
+    section {
+      padding: var(--section-py) var(--section-px);
+    }
+    .section-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    /* ── Accent Text Utility ── */
+    .accent-text {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding-top: 6rem;
+    }
+    .hero-inner {
+      max-width: var(--max-w);
+      width: 100%;
+    }
+    .hero-label {
+      font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    }
+    .hero-title {
+      font-size: clamp(3rem, 11vw, 10rem);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: -0.035em;
+      margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    }
+    .hero-subtitle {
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 40ch;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      line-height: 1.55;
+      margin-bottom: clamp(2rem, 4vw, 3.5rem);
+    }
+    .hero-after-code {
+      color: var(--muted-light);
+      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+      line-height: 1.6;
+      margin-top: clamp(1.5rem, 3vw, 2rem);
+    }
+    .hero-after-code strong {
+      color: #fff;
+    }
+
+    /* ── Scroll Chevron ── */
+    .scroll-chevron {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: chevron-float 2.5s ease-in-out infinite;
+      opacity: 0.35;
+      transition: opacity 0.2s;
+    }
+    .scroll-chevron:hover { opacity: 0.7; }
+    .scroll-chevron svg {
+      width: 28px;
+      height: 28px;
+      stroke: #fff;
+    }
+    @keyframes chevron-float {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(12px); }
+    }
+    @media (max-width: 640px) {
+      .scroll-chevron { display: none; }
+    }
+
+    /* ── Code Block ── */
+    .code-block {
+      position: relative;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.5rem;
+      padding-right: 5rem;
+      font-family: var(--mono);
+      font-size: clamp(0.78rem, 1.3vw, 0.95rem);
+      line-height: 1.7;
+      overflow-x: auto;
+      max-width: 600px;
+    }
+    .code-block code {
+      font-family: inherit;
+      color: rgba(255, 255, 255, 0.75);
+    }
+    .code-tag { color: rgba(255, 255, 255, 0.45); }
+    .code-attr { color: var(--accent); }
+    .code-value { color: #fff; }
+    .code-text { color: rgba(255, 255, 255, 0.7); }
+    .code-comment { color: var(--muted); }
+    .code-prompt { color: var(--muted); user-select: none; }
+    .code-output { color: var(--accent); }
+
+    /* ── Copy Button ── */
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: var(--muted-light);
+      padding: 0.3rem 0.7rem;
+      font-family: var(--font);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      letter-spacing: 0.02em;
+      min-width: 3.5rem;
+      text-align: center;
+    }
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .copy-btn.copied {
+      color: var(--accent);
+      border-color: rgba(212, 255, 0, 0.3);
+    }
+
+    /* ── Workflow Section ── */
+    .section-label {
+      font-size: clamp(0.7rem, 1vw, 0.8rem);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: clamp(3rem, 6vw, 5rem);
+    }
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    @media (max-width: 768px) {
+      .workflow-grid { grid-template-columns: 1fr; }
+    }
+    .workflow-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: clamp(1.5rem, 3vw, 2.25rem);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .workflow-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .card-step {
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    .card-title {
+      font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+    .card-desc {
+      color: var(--muted);
+      font-size: clamp(0.9rem, 1.3vw, 1rem);
+      line-height: 1.55;
+    }
+
+    /* ── Zero Everything Section ── */
+    .zero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+    @media (max-width: 900px) {
+      .zero-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .zero-grid { grid-template-columns: 1fr; }
+    }
+    .zero-item {
+      padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 2vw, 1.5rem);
+      border-bottom: 1px solid var(--border);
+    }
+    .zero-grid .zero-item:nth-child(-n+3) {
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 900px) and (min-width: 561px) {
+      .zero-grid .zero-item:nth-child(-n+2) { border-top: 1px solid var(--border); }
+      .zero-grid .zero-item:nth-child(3) { border-top: none; }
+    }
+    @media (max-width: 560px) {
+      .zero-grid .zero-item:nth-child(n+2) { border-top: none; }
+      .zero-grid .zero-item:first-child { border-top: 1px solid var(--border); }
+    }
+    .zero-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .zero-number {
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 700;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.15);
+      letter-spacing: -0.04em;
+    }
+    .zero-word {
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .zero-desc {
+      color: var(--muted);
+      font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+      line-height: 1.55;
+    }
+
+    /* ── Philosophy Section ── */
+    .philosophy-text {
+      font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+      font-weight: 300;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 48ch;
+    }
+    .philosophy-text strong {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* ── CTA Section ── */
+    .cta-subtitle {
+      color: var(--muted);
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      font-weight: 300;
+      margin-top: 1.25rem;
+      margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    }
+    .cta-code {
+      max-width: 520px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: clamp(3rem, 6vh, 5rem) var(--section-px);
+      text-align: center;
+    }
+    .footer-text {
+      color: rgba(255, 255, 255, 0.25);
+      font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    }
+
+    /* ── Reduced Motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      #bg-canvas {
+        display: none !important;
+      }
+      .scroll-chevron {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <div class="content-layer">
+    <!-- ── Nav ── -->
+    <nav class="nav" aria-label="Primary">
+      <a href="#" class="wordmark">ad<span class="wordmark-accent">lib</span></a>
+      <a href="#start" class="nav-pill">Get Started</a>
+    </nav>
+
+    <!-- ── Main ── -->
+    <main id="main">
+
+      <!-- ── Hero ── -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <p class="hero-label reveal">Agent-First CMS</p>
+          <h1 id="hero-title" class="hero-title reveal">
+            Your agent<br><span class="accent-text">is your CMS.</span>
+          </h1>
+          <p class="hero-subtitle reveal">One HTML attribute. Full content round-trip. Zero everything else.</p>
+          <div class="code-block reveal" role="figure" aria-label="Example HTML annotation">
+            <button class="copy-btn" aria-label="Copy data-adlib-cms attribute" onclick="copyText('data-adlib-cms=&quot;hero.headline&quot;', this)">Copy</button>
+            <code><span class="code-tag">&lt;h1</span> <span class="code-attr">data-adlib-cms</span>=<span class="code-value">"hero.headline"</span><span class="code-tag">&gt;</span>
+  <span class="code-text">Your Text Here</span>
+<span class="code-tag">&lt;/h1&gt;</span></code>
+          </div>
+          <p class="hero-after-code reveal">Add it to your HTML. Run <strong>one command</strong>. Your agent handles the rest.</p>
+        </div>
+        <div class="scroll-chevron" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ── Workflow ── -->
+      <section id="workflow" aria-labelledby="workflow-title">
+        <div class="section-inner">
+          <h2 id="workflow-title" class="section-title reveal">Four steps.<br>Three are automatic.</h2>
+          <div class="workflow-grid">
+            <div class="workflow-card reveal">
+              <div class="card-step">01</div>
+              <h3 class="card-title">Annotate</h3>
+              <p class="card-desc">Add <code style="font-family:var(--mono);color:var(--accent)">data-adlib-cms</code> attributes to your HTML. One attribute per content field. That's your whole schema.</p>
+            </div>
+            <div class="workflow-card reveal">
+              <div class="card-step">02</div>
+              <h3 class="card-title">Extract</h3>
+              <p class="card-desc">Your agent reads the HTML, finds every annotation, produces structured <code style="font-family:var(--mono);color:var(--accent)">content.json</code>. Automatically.</p>
+            </div>
+            <div class="workflow-card reveal">
+              <div class="card-step">03</div>
+              <h3 class="card-title">Edit</h3>
+              <p class="card-desc">Update the JSON. Change a headline, swap an image, add a testimonial. Plain data, no API calls.</p>
+            </div>
+            <div class="workflow-card reveal">
+              <div class="card-step">04</div>
+              <h3 class="card-title">Build</h3>
+              <p class="card-desc">JSON → HTML. Push. Ship. Deterministic — same content in, same page out.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Zero Everything ── -->
+      <section id="zero" aria-labelledby="zero-title">
+        <div class="section-inner">
+          <h2 id="zero-title" class="section-title reveal">Zero everything.</h2>
+          <div class="zero-grid">
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">deps</span>
+              </div>
+              <p class="zero-desc">No frameworks. No npm install. Just Node and your HTML.</p>
+            </div>
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">config</span>
+              </div>
+              <p class="zero-desc">No YAML. No env files. The HTML <em>is</em> the config.</p>
+            </div>
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">database</span>
+              </div>
+              <p class="zero-desc">Content lives in a JSON file. Version it with git.</p>
+            </div>
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">dashboard</span>
+              </div>
+              <p class="zero-desc">No CMS UI to build. Your agent <em>is</em> the interface.</p>
+            </div>
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">lock-in</span>
+              </div>
+              <p class="zero-desc">Remove the attributes. You still have a working site.</p>
+            </div>
+            <div class="zero-item reveal">
+              <div class="zero-head">
+                <span class="zero-number">0</span>
+                <span class="zero-word">learning</span>
+              </div>
+              <p class="zero-desc">If you can write an HTML attribute, you already know adlib.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Philosophy ── -->
+      <section id="philosophy" aria-labelledby="philosophy-title">
+        <div class="section-inner">
+          <h2 id="philosophy-title" class="section-title reveal">Built for agents.<br>Not dashboards.</h2>
+          <p class="philosophy-text reveal">Traditional CMSs were built for humans clicking buttons in browsers. Adlib was built for <strong>agents reading and writing files</strong>. Your client's content already lives in the HTML they shipped. Annotate it once and <strong>let your agent handle the rest</strong> — extraction, editing, rebuilding, deploying. No middleware. No APIs. <strong>Just files.</strong></p>
+        </div>
+      </section>
+
+      <!-- ── CTA ── -->
+      <section id="start" aria-labelledby="cta-title">
+        <div class="section-inner">
+          <h2 id="cta-title" class="section-title reveal">Ship it tonight.</h2>
+          <p class="cta-subtitle reveal">Clone. Annotate. Extract. Push. That's the whole thing.</p>
+          <div class="code-block cta-code reveal" role="figure" aria-label="Terminal command to extract content">
+            <button class="copy-btn" aria-label="Copy extract command" onclick="copyText('node extract.js index.html > content.json', this)">Copy</button>
+            <code><span class="code-prompt">$ </span>node extract.js index.html &gt; content.json
+<span class="code-output">→ 23 fields extracted. Done.</span></code>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+      <p class="footer-text">adlib — the agent-first CMS for static sites</p>
+    </footer>
+  </div>
+
+  <!-- ── Copy Helper ── -->
+  <script>
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+  <!-- ── Nav Scroll ── -->
+  <script>
+    (function() {
+      var nav = document.querySelector('.nav');
+      var scrolled = false;
+      window.addEventListener('scroll', function() {
+        var s = window.scrollY > 40;
+        if (s !== scrolled) {
+          scrolled = s;
+          nav.classList.toggle('scrolled', s);
+        }
+      }, { passive: true });
+    })();
+  </script>
+
+  <!-- ── WebGL Background ── -->
+  <script>
+    (function() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      var canvas = document.getElementById('bg-canvas');
+      var gl = canvas.getContext('webgl');
+      if (!gl) return;
+
+      var vsSource = 'attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.0,1.0);}';
+      var fsSource = [
+        'precision mediump float;',
+        'uniform float u_time;',
+        'uniform vec2 u_resolution;',
+        'void main(){',
+        '  vec2 uv=gl_FragCoord.xy/u_resolution.xy;',
+        '  float aspect=u_resolution.x/u_resolution.y;',
+        '  vec2 uvA=vec2(uv.x*aspect,uv.y);',
+        '  vec2 c1=vec2((0.3+sin(u_time*0.15)*0.2)*aspect,0.5+cos(u_time*0.12)*0.2);',
+        '  vec2 c2=vec2((0.7+cos(u_time*0.13)*0.2)*aspect,0.4+sin(u_time*0.17)*0.25);',
+        '  vec2 c3=vec2((0.5+sin(u_time*0.11)*0.25)*aspect,0.7+cos(u_time*0.14)*0.2);',
+        '  float b1=smoothstep(0.5,0.0,length(uvA-c1));',
+        '  float b2=smoothstep(0.45,0.0,length(uvA-c2));',
+        '  float b3=smoothstep(0.4,0.0,length(uvA-c3));',
+        '  float blobs=b1+b2+b3;',
+        '  vec3 neon=vec3(0.831,1.0,0.0);',
+        '  gl_FragColor=vec4(neon*blobs*0.1,1.0);',
+        '}'
+      ].join('\n');
+
+      function createShader(type, source) {
+        var s = gl.createShader(type);
+        gl.shaderSource(s, source);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+          gl.deleteShader(s);
+          return null;
+        }
+        return s;
+      }
+
+      var vs = createShader(gl.VERTEX_SHADER, vsSource);
+      var fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+      if (!vs || !fs) return;
+
+      var prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+      gl.useProgram(prog);
+
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+
+      var pos = gl.getAttribLocation(prog, 'a_position');
+      gl.enableVertexAttribArray(pos);
+      gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+
+      var uTime = gl.getUniformLocation(prog, 'u_time');
+      var uRes = gl.getUniformLocation(prog, 'u_resolution');
+
+      function resize() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = canvas.clientWidth * dpr;
+        canvas.height = canvas.clientHeight * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+      resize();
+      window.addEventListener('resize', resize, { passive: true });
+
+      var running = true;
+      document.addEventListener('visibilitychange', function() {
+        running = !document.hidden;
+        if (running) frame();
+      });
+
+      function frame() {
+        if (!running) return;
+        gl.uniform1f(uTime, performance.now() * 0.001);
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(frame);
+      }
+      frame();
+    })();
+  </script>
+
+  <!-- ── Animations (motion.dev) ── -->
+  <script type="module">
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.reveal').forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+    } else {
+      const { animate, inView, stagger } = await import('https://cdn.jsdelivr.net/npm/motion@11/+esm');
+
+      // Hero: stagger-reveal on load
+      const heroReveals = document.querySelectorAll('.hero .reveal');
+      if (heroReveals.length) {
+        animate(heroReveals,
+          { opacity: [0, 1], transform: ['translateY(40px)', 'translateY(0px)'] },
+          { duration: 0.8, delay: stagger(0.12), easing: 'ease-out' }
+        );
+      }
+
+      // All other sections: inView reveal
+      document.querySelectorAll('section:not(.hero)').forEach(function(section) {
+        const els = section.querySelectorAll('.reveal');
+        if (!els.length) return;
+        inView(section, function() {
+          animate(els,
+            { opacity: [0, 1], transform: ['translateY(40px)', 'translateY(0px)'] },
+            { duration: 0.7, delay: stagger(0.08), easing: 'ease-out' }
+          );
+        }, { amount: 0.15 });
+      });
+    }
+  </script>
+</body>
+</html>
