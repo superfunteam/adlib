@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>adlib — the agent-first CMS</title>
-  <meta name="description" content="One HTML attribute. Full content round-trip. Zero everything else. The agent-first CMS for static sites.">
+  <meta name="description" content="Let your agent handle it. Simple setup. One HTML attribute in your code. Full content round-trip. Zero everything else. The agent-first CMS for static sites.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,200,0,0" />
   <style>
     /* ── Fonts ── */
     @font-face {
@@ -115,9 +116,6 @@
       left: 0;
       right: 0;
       z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       padding: 1.25rem var(--section-px);
       background: transparent;
       border-bottom: 1px solid transparent;
@@ -130,6 +128,14 @@
       border-bottom-color: var(--border);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+    }
+    .nav-inner {
+      max-width: var(--max-w);
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .wordmark {
       font-weight: 700;
@@ -200,24 +206,99 @@
       font-weight: 700;
       line-height: 0.95;
       letter-spacing: -0.035em;
-      margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+      margin: clamp(3rem, 6vw, 5rem) 0;
+    }
+    .hero-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(2rem, 4vw, 4rem);
+      align-items: start;
+      margin-bottom: clamp(2rem, 4vw, 3.5rem);
+    }
+    @media (max-width: 768px) {
+      .hero-columns {
+        grid-template-columns: 1fr;
+      }
     }
     .hero-subtitle {
       font-weight: 300;
       color: var(--muted);
       max-width: 40ch;
-      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-size: clamp(1.1rem, 2.2vw, 1.55rem);
       line-height: 1.55;
-      margin-bottom: clamp(2rem, 4vw, 3.5rem);
     }
-    .hero-after-code {
+    .code-window {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .code-window-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .copy-btn.window-bar-btn {
+      position: static;
+      margin-left: auto;
+      top: auto;
+      right: auto;
+    }
+    .code-window-bar .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .hero-features {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: clamp(5rem, 10vw, 8rem);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 640px) {
+      .hero-features {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .hero-feature {
+      padding: clamp(1.25rem, 2.5vw, 1.75rem);
+      border-right: 1px solid var(--border);
+    }
+    .hero-feature:last-child { border-right: none; }
+    @media (max-width: 640px) {
+      .hero-feature:nth-child(2) { border-right: none; }
+      .hero-feature:nth-child(n+3) { border-top: 1px solid var(--border); }
+      .hero-feature:nth-child(4) { border-right: none; }
+    }
+    .hero-feature-icon {
+      display: block;
+      font-family: 'Material Symbols Outlined';
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+      line-height: 1;
+      font-weight: 200;
+      font-style: normal;
+    }
+    .hero-feature-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.01em;
+    }
+    .hero-feature-desc {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+    .hero-feature-desc em {
+      font-style: italic;
       color: var(--muted-light);
-      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
-      line-height: 1.6;
-      margin-top: clamp(1.5rem, 3vw, 2rem);
-    }
-    .hero-after-code strong {
-      color: #fff;
     }
 
     /* ── Scroll Chevron ── */
@@ -247,20 +328,23 @@
     /* ── Code Block ── */
     .code-block {
       position: relative;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
       padding: 1.5rem 1.5rem;
       padding-right: 5rem;
       font-family: var(--mono);
       font-size: clamp(0.78rem, 1.3vw, 0.95rem);
       line-height: 1.7;
       overflow-x: auto;
-      max-width: 600px;
+    }
+    .cta-code {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      max-width: 520px;
     }
     .code-block code {
       font-family: inherit;
       color: rgba(255, 255, 255, 0.75);
+      white-space: pre;
     }
     .code-tag { color: rgba(255, 255, 255, 0.45); }
     .code-attr { color: var(--accent); }
@@ -418,15 +502,27 @@
     }
 
     /* ── CTA Section ── */
+    .cta-centered {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #cta-title {
+      font-size: clamp(4rem, 10vw, 8rem);
+      margin-bottom: 0;
+    }
     .cta-subtitle {
       color: var(--muted);
-      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
       font-weight: 300;
-      margin-top: 1.25rem;
-      margin-bottom: clamp(2.5rem, 5vw, 4rem);
+      margin-top: 0.5rem;
+      margin-bottom: clamp(2rem, 4vw, 3rem);
     }
-    .cta-code {
+    .cta-centered .code-window {
       max-width: 520px;
+      width: 100%;
+      text-align: left;
     }
 
     /* ── Footer ── */
@@ -437,6 +533,22 @@
     .footer-text {
       color: rgba(255, 255, 255, 0.25);
       font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    }
+
+    /* ── Typewriter ── */
+    .typewriter-cursor {
+      display: inline-block;
+      width: 0.06em;
+      height: 0.85em;
+      background: var(--accent);
+      margin-left: 0.04em;
+      vertical-align: baseline;
+      position: relative;
+      top: 0.05em;
+      animation: blink 0.5s step-end infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
     }
 
     /* ── Reduced Motion ── */
@@ -462,8 +574,10 @@
   <div class="content-layer">
     <!-- ── Nav ── -->
     <nav class="nav" aria-label="Primary">
-      <a href="#" class="wordmark">ad<span class="wordmark-accent">lib</span></a>
-      <a href="#start" class="nav-pill">Get Started</a>
+      <div class="nav-inner">
+        <a href="#" class="wordmark">ad<span class="wordmark-accent">lib</span></a>
+        <a href="#start" class="nav-pill">Get Started</a>
+      </div>
     </nav>
 
     <!-- ── Main ── -->
@@ -472,18 +586,47 @@
       <!-- ── Hero ── -->
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-inner">
-          <p class="hero-label reveal">Agent-First CMS</p>
+          <p class="hero-label reveal">Your new Agent-First CMS</p>
           <h1 id="hero-title" class="hero-title reveal">
-            Your agent<br><span class="accent-text">is your CMS.</span>
+            You don't need<br><span class="accent-text"><span id="typewriter">a real CMS</span><span class="typewriter-cursor" aria-hidden="true"></span>.</span>
           </h1>
-          <p class="hero-subtitle reveal">One HTML attribute. Full content round-trip. Zero everything else.</p>
-          <div class="code-block reveal" role="figure" aria-label="Example HTML annotation">
-            <button class="copy-btn" aria-label="Copy data-adlib-cms attribute" onclick="copyText('data-adlib-cms=&quot;hero.headline&quot;', this)">Copy</button>
-            <code><span class="code-tag">&lt;h1</span> <span class="code-attr">data-adlib-cms</span>=<span class="code-value">"hero.headline"</span><span class="code-tag">&gt;</span>
-  <span class="code-text">Your Text Here</span>
+          <div class="hero-columns reveal">
+            <p class="hero-subtitle">Let your agent handle it. Simple setup. One HTML attribute in your code. Full content round-trip. <span style="color:#fff">Zero everything else.</span></p>
+            <div class="code-window" role="figure" aria-label="Example HTML annotation">
+              <div class="code-window-bar" aria-hidden="true">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+              <div class="code-block">
+                <button class="copy-btn" aria-label="Copy data-adlib-cms attribute" onclick="copyText('data-adlib-cms=&quot;hero.headline&quot;', this)">Copy</button>
+                <code><span class="code-comment">// make my h1 editable in the Adlib admin</span>
+<span class="code-tag">&lt;h1 </span><strong><span class="code-attr">data-adlib-cms</span>=<span class="code-value">"hero.headline"</span></strong><span class="code-tag">&gt;</span>
+  <span class="code-text">Your Headline Here</span>
 <span class="code-tag">&lt;/h1&gt;</span></code>
+              </div>
+            </div>
           </div>
-          <p class="hero-after-code reveal">Add it to your HTML. Run <strong>one command</strong>. Your agent handles the rest.</p>
+          <div class="hero-features reveal">
+            <div class="hero-feature">
+              <span class="hero-feature-icon" aria-hidden="true">format_list_numbered_rtl</span>
+              <h3 class="hero-feature-title">Fill-in-the-blanks</h3>
+              <p class="hero-feature-desc">With Adlib, your HTML is your template. No new language to learn, just your content.</p>
+            </div>
+            <div class="hero-feature">
+              <span class="hero-feature-icon" aria-hidden="true">password</span>
+              <h3 class="hero-feature-title">Password-protected admin</h3>
+              <p class="hero-feature-desc">Just like the other guys, an easy way for you (or your client) to edit content.</p>
+            </div>
+            <div class="hero-feature">
+              <span class="hero-feature-icon" aria-hidden="true">rebase_edit</span>
+              <h3 class="hero-feature-title">GitHub-backed workflow</h3>
+              <p class="hero-feature-desc">All your content and changes are tracked with GitHub, just like the pros use.</p>
+            </div>
+            <div class="hero-feature">
+              <span class="hero-feature-icon" aria-hidden="true">dns</span>
+              <h3 class="hero-feature-title">Host almost anywhere</h3>
+              <p class="hero-feature-desc">Push and host your site with Netlify, Cloudflare, or private VPS with ease.</p>
+            </div>
+          </div>
         </div>
         <div class="scroll-chevron" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -499,23 +642,23 @@
           <div class="workflow-grid">
             <div class="workflow-card reveal">
               <div class="card-step">01</div>
-              <h3 class="card-title">Annotate</h3>
-              <p class="card-desc">Add <code style="font-family:var(--mono);color:var(--accent)">data-adlib-cms</code> attributes to your HTML. One attribute per content field. That's your whole schema.</p>
+              <h3 class="card-title">Annotate Agent</h3>
+              <p class="card-desc">Use an agent to add <code style="font-family:var(--mono);color:var(--accent)">data-adlib-cms</code> attributes to your HTML. One attribute per content field that you want to show up in the admin.</p>
             </div>
             <div class="workflow-card reveal">
               <div class="card-step">02</div>
-              <h3 class="card-title">Extract</h3>
-              <p class="card-desc">Your agent reads the HTML, finds every annotation, produces structured <code style="font-family:var(--mono);color:var(--accent)">content.json</code>. Automatically.</p>
+              <h3 class="card-title">Adlib It</h3>
+              <p class="card-desc">Login and marvel at your new Adlib admin. Each and every field, with simple editing, file uploads, and <em>light</em> WYSIWYG from <span style="color:var(--accent)">Quill.js</span>.</p>
             </div>
             <div class="workflow-card reveal">
               <div class="card-step">03</div>
-              <h3 class="card-title">Edit</h3>
-              <p class="card-desc">Update the JSON. Change a headline, swap an image, add a testimonial. Plain data, no API calls.</p>
+              <h3 class="card-title">Ship Updates</h3>
+              <p class="card-desc">Content changes are automatically pushed to <span style="color:var(--accent)">GitHub</span> for safe keeping. Changes should be live on your site in under 60 seconds.</p>
             </div>
             <div class="workflow-card reveal">
               <div class="card-step">04</div>
-              <h3 class="card-title">Build</h3>
-              <p class="card-desc">JSON → HTML. Push. Ship. Deterministic — same content in, same page out.</p>
+              <h3 class="card-title">Repeat</h3>
+              <p class="card-desc">HTML → Agent → Admin → Edits → HTML. Deterministic — <span style="color:var(--accent)">same content in, same page out.</span> It's that easy, just fill in the blanks.</p>
             </div>
           </div>
         </div>
@@ -529,7 +672,7 @@
             <div class="zero-item reveal">
               <div class="zero-head">
                 <span class="zero-number">0</span>
-                <span class="zero-word">deps</span>
+                <span class="zero-word">dependencies</span>
               </div>
               <p class="zero-desc">No frameworks. No npm install. Just Node and your HTML.</p>
             </div>
@@ -538,28 +681,28 @@
                 <span class="zero-number">0</span>
                 <span class="zero-word">config</span>
               </div>
-              <p class="zero-desc">No YAML. No env files. The HTML <em>is</em> the config.</p>
+              <p class="zero-desc">The HTML <em>is</em> the config. Let your agent do it.</p>
             </div>
             <div class="zero-item reveal">
               <div class="zero-head">
                 <span class="zero-number">0</span>
                 <span class="zero-word">database</span>
               </div>
-              <p class="zero-desc">Content lives in a JSON file. Version it with git.</p>
+              <p class="zero-desc">Content lives in static files. Full version control with git.</p>
             </div>
             <div class="zero-item reveal">
               <div class="zero-head">
                 <span class="zero-number">0</span>
-                <span class="zero-word">dashboard</span>
+                <span class="zero-word">custom coding</span>
               </div>
-              <p class="zero-desc">No CMS UI to build. Your agent <em>is</em> the interface.</p>
+              <p class="zero-desc">No CMS UI to build. Use ours or use your agent.</p>
             </div>
             <div class="zero-item reveal">
               <div class="zero-head">
                 <span class="zero-number">0</span>
                 <span class="zero-word">lock-in</span>
               </div>
-              <p class="zero-desc">Remove the attributes. You still have a working site.</p>
+              <p class="zero-desc">Remove the attributes. Take your code and go. You still have a working site.</p>
             </div>
             <div class="zero-item reveal">
               <div class="zero-head">
@@ -575,20 +718,27 @@
       <!-- ── Philosophy ── -->
       <section id="philosophy" aria-labelledby="philosophy-title">
         <div class="section-inner">
-          <h2 id="philosophy-title" class="section-title reveal">Built for agents.<br>Not dashboards.</h2>
-          <p class="philosophy-text reveal">Traditional CMSs were built for humans clicking buttons in browsers. Adlib was built for <strong>agents reading and writing files</strong>. Your client's content already lives in the HTML they shipped. Annotate it once and <strong>let your agent handle the rest</strong> — extraction, editing, rebuilding, deploying. No middleware. No APIs. <strong>Just files.</strong></p>
+          <h2 id="philosophy-title" class="section-title reveal">Built for agents.<br>And the busy humans using them.</h2>
+          <p class="philosophy-text reveal">Traditional CMSs were built for humans clicking buttons in browsers. Adlib was built for <strong>agents reading and writing files</strong>. Your client's content already lives in the HTML they shipped. Annotate it once and <strong>let your agent or client handle the rest</strong> — extraction, editing, rebuilding, deploying. No middleware. No APIs. <strong>Just files.</strong></p>
         </div>
       </section>
 
       <!-- ── CTA ── -->
       <section id="start" aria-labelledby="cta-title">
         <div class="section-inner">
-          <h2 id="cta-title" class="section-title reveal">Ship it tonight.</h2>
-          <p class="cta-subtitle reveal">Clone. Annotate. Extract. Push. That's the whole thing.</p>
-          <div class="code-block cta-code reveal" role="figure" aria-label="Terminal command to extract content">
-            <button class="copy-btn" aria-label="Copy extract command" onclick="copyText('node extract.js index.html > content.json', this)">Copy</button>
-            <code><span class="code-prompt">$ </span>node extract.js index.html &gt; content.json
+          <div class="cta-centered reveal">
+            <h2 id="cta-title" class="section-title">Ship your site<br><span class="accent-text">tonight.</span></h2>
+            <p class="cta-subtitle">Clone. Annotate. Extract. Push. That's the whole thing.</p>
+            <div class="code-window" role="figure" aria-label="Terminal command to extract content">
+              <div class="code-window-bar">
+                <span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span>
+                <button class="copy-btn window-bar-btn" aria-label="Coming soon" style="cursor:default" disabled>Coming soon</button>
+              </div>
+              <div class="code-block">
+                <code><span class="code-prompt">$ </span>node extract.js index.html &gt; content.json
 <span class="code-output">→ 23 fields extracted. Done.</span></code>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -748,7 +898,53 @@
           );
         }, { amount: 0.15 });
       });
+
+      // Zero section: light up 0s one at a time
+      const zeroSection = document.getElementById('zero');
+      if (zeroSection) {
+        const zeros = zeroSection.querySelectorAll('.zero-number');
+        inView(zeroSection, function() {
+          zeros.forEach(function(el, i) {
+            animate(el,
+              { color: ['rgba(255,255,255,0.15)', '#d4ff00'] },
+              { duration: 0.25, delay: i * 0.5, easing: 'ease-out' }
+            );
+          });
+        }, { amount: 0.2 });
+      }
     }
+  </script>
+
+  <!-- ── Typewriter ── -->
+  <script>
+    (function() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var el = document.getElementById('typewriter');
+      var words = ['a real CMS', 'WordPress', 'Webflow', 'Squarespace'];
+      var idx = 0;
+      var DEL = 28, TYPE = 55, PAUSE = 1800;
+
+      function run() {
+        var current = words[idx];
+        var next = words[(idx + 1) % words.length];
+        idx = (idx + 1) % words.length;
+        // delete
+        var len = current.length;
+        (function del() {
+          if (len < 0) return type(0);
+          el.textContent = current.slice(0, len);
+          len--;
+          setTimeout(del, DEL);
+        })();
+        // type next
+        function type(i) {
+          if (i > next.length) return setTimeout(run, PAUSE);
+          el.textContent = next.slice(0, i);
+          setTimeout(function() { type(i + 1); }, TYPE);
+        }
+      }
+      setTimeout(run, PAUSE);
+    })();
   </script>
 </body>
 </html>
