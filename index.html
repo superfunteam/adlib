@@ -401,6 +401,56 @@
       border-color: rgba(212, 255, 0, 0.3);
     }
 
+    /* ── Preview Section ── */
+    .preview-section {
+      padding-top: clamp(6rem, 14vh, 12rem);
+      padding-bottom: clamp(2rem, 4vh, 3rem);
+    }
+    .preview-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(1rem, 2vw, 1.5rem);
+    }
+    @media (max-width: 768px) {
+      .preview-pair { grid-template-columns: 1fr; }
+    }
+    .preview-browser {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .preview-label {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+    .preview-browser .code-window-bar {
+      position: relative;
+    }
+    .preview-viewport {
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      position: relative;
+      line-height: 0;
+      font-size: 0;
+    }
+    .preview-track {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .preview-track img {
+      width: 100%;
+      display: block;
+      flex-shrink: 0;
+    }
+
     /* ── Workflow Section ── */
     .section-label {
       font-size: clamp(0.7rem, 1vw, 0.8rem);
@@ -653,6 +703,40 @@
         </div>
       </section>
 
+      <!-- ── Preview ── -->
+      <section id="preview" class="preview-section" aria-label="Before and after preview">
+        <div class="section-inner">
+          <div class="preview-pair">
+            <div class="preview-browser">
+              <div class="code-window-bar" aria-hidden="true">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="preview-label">Your Site</span>
+              </div>
+              <div class="preview-viewport">
+                <div class="preview-track" id="page-track">
+                  <img src="previews/page-preview-1.webp" alt="Website preview 1" draggable="false">
+                  <img src="previews/page-preview-2.webp" alt="Website preview 2" draggable="false">
+                  <img src="previews/page-preview-3.webp" alt="Website preview 3" draggable="false">
+                </div>
+              </div>
+            </div>
+            <div class="preview-browser">
+              <div class="code-window-bar" aria-hidden="true">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="preview-label">Adlib Admin</span>
+              </div>
+              <div class="preview-viewport">
+                <div class="preview-track" id="adlib-track">
+                  <img src="previews/adlib-preview-1.webp" alt="Adlib admin preview 1" draggable="false">
+                  <img src="previews/adlib-preview-2.webp" alt="Adlib admin preview 2" draggable="false">
+                  <img src="previews/adlib-preview-3.webp" alt="Adlib admin preview 3" draggable="false">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ── Workflow ── -->
       <section id="workflow" aria-labelledby="workflow-title">
         <div class="section-inner">
@@ -736,8 +820,8 @@
       <!-- ── Philosophy ── -->
       <section id="philosophy" aria-labelledby="philosophy-title">
         <div class="section-inner">
-          <h2 id="philosophy-title" class="section-title reveal">Built for agents.<br>And the busy humans using them.</h2>
-          <p class="philosophy-text reveal">Traditional CMSs were built for humans clicking buttons in browsers. Adlib was built for <strong>agents reading and writing files</strong>. Your client's content already lives in the HTML they shipped. Annotate it once and <strong>let your agent or client handle the rest</strong> — extraction, editing, rebuilding, deploying. No middleware. No APIs. <strong>Just files.</strong></p>
+          <h2 id="philosophy-title" class="section-title reveal">Built for agents.<br>And the <span class="accent-text">busy humans</span> using them.</h2>
+          <p class="philosophy-text reveal">Traditional CMSs give your client a whole website builder they'll never learn. <strong>Adlib just gives them the blanks</strong> — headlines, paragraphs, buttons — as simple text fields they fill in and save. No dashboard to figure out. No way to accidentally break your design. <strong>You built the site, they ad-lib the words.</strong> That's the whole relationship.</p>
         </div>
       </section>
 
@@ -746,7 +830,7 @@
         <div class="section-inner">
           <div class="cta-centered reveal">
             <h2 id="cta-title" class="section-title">Ship your site<br><span class="accent-text">tonight.</span></h2>
-            <p class="cta-subtitle">Clone. Annotate. Extract. Push. That's the whole thing.</p>
+            <p class="cta-subtitle">Build a site and fill in the blanks later.</p>
             <div class="code-window" role="figure" aria-label="Terminal command to extract content">
               <div class="code-window-bar">
                 <span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span><span class="dot" aria-hidden="true"></span>
@@ -931,6 +1015,26 @@
         }, { amount: 0.2 });
       }
     }
+  </script>
+
+  <!-- ── Preview Slideshow ── -->
+  <script>
+    (function() {
+      var pageTrack = document.getElementById('page-track');
+      var adlibTrack = document.getElementById('adlib-track');
+      if (!pageTrack || !adlibTrack) return;
+      var slide = 0;
+      var total = 3;
+      var PAUSE = 3000;
+
+      function next() {
+        slide = (slide + 1) % total;
+        var offset = -(slide * (100 / total)) + '%';
+        pageTrack.style.transform = 'translateY(' + offset + ')';
+        adlibTrack.style.transform = 'translateY(' + offset + ')';
+      }
+      setInterval(next, PAUSE);
+    })();
   </script>
 
   <!-- ── Typewriter ── -->
